@@ -12,6 +12,63 @@ import 'package:quiver/iterables.dart';
 
 part 'enum_source_class.g.dart';
 
+abstract class _EnumGenerator {
+  Iterable<String> computeErrors();
+
+  void generateCode(StringBuffer result);
+}
+
+class _FieldEnumGenerator implements _EnumGenerator {
+  @override
+  Iterable<String> computeErrors() {
+    return [];
+  }
+
+  @override
+  void generateCode(StringBuffer result) {
+    for (final field in fields) {
+      result.writeln('const $name ${field.generatedIdentifier} = '
+          'const $name._(\'${field.name}\');');
+    }
+
+    result.writeln('');
+
+    result.writeln('$name $valueOfIdentifier(String name) {'
+        'switch (name) {');
+    for (final field in fields) {
+      result.writeln(
+          'case \'${field.name}\': return ${field.generatedIdentifier};');
+    }
+    result.writeln('default: throw new ArgumentError(name);');
+    result.writeln('}}');
+
+    result.writeln('');
+
+    result.writeln('final BuiltSet<$name> $valuesIdentifier ='
+        'new BuiltSet<$name>(const <$name>[');
+    for (final field in fields) {
+      result.writeln('${field.generatedIdentifier},');
+    }
+    result.writeln(']);');
+  }
+}
+
+class _ConstructorEnumGenerator implements _EnumGenerator {
+  _ConstructorEnumGenerator(EnumSourceClass sourceClass)
+      : _implName = '_${sourceClass.name}'.replaceFirst('_\$_', '_\$');
+
+  final String _implName;
+  @override
+  Iterable<String> computeErrors() {
+    return [];
+  }
+
+  @override
+  String generateCode() {
+    return '';
+  }
+}
+
 abstract class EnumSourceClass
     implements Built<EnumSourceClass, EnumSourceClassBuilder> {
   ClassElement get element;
